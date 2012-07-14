@@ -4,6 +4,6 @@
 - name: Install Mutt
   action: yum pkg=mutt state=installed
 - name: dot mutt
-  action: file path=~$muttuser/.mutt state=directory
+  action: file path=/home/$muttuser/.mutt state=directory owner=$muttuser
 - name: Muttconfig
-  action: template src=templates/mutt.rc.in dest=~$muttuser/.muttrc
+  action: template src=templates/mutt.rc.in dest=/home/$muttuser/.muttrc owner=$muttuser
