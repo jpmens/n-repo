@@ -1,2 +1,4 @@
+# This same inventory file is deployed to each "pull"-type node
+
 [nodeonly]
 127.0.0.1

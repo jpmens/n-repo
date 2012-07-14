@@ -6,7 +6,7 @@
   tasks:
   - name: Create JANED
     action: user name=janed comment="Jane Doe" shell=/bin/bash createhome=yes home=/home/janed
-  - include: mutt.yaml muttuser=janed
+  - include: node/mutt.yaml muttuser=janed
   - name: Create config file
-    action: template src=templates/whazzup.in dest=/tmp/whazzup
+    action: template src=node/templates/whazzup.in dest=/tmp/whazzup
 
