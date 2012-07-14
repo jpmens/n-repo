@@ -30,7 +30,7 @@ import socket
 import random
 
 import local
-#JPM# import paramiko_ssh
+import paramiko_ssh
 import ssh
 
 class Connection(object):
