@@ -4,9 +4,9 @@
   vars:
     author: JP Mens
   tasks:
-  - name: Create JPMENS
-    action: user name=jpmens comment="JP Mens" shell=/bin/bash createhome=yes home=/home/jpmens
-  - include: mutt.yaml muttuser=jpmens
+  - name: Create JANED
+    action: user name=janed comment="Jane Doe" shell=/bin/bash createhome=yes home=/home/janed
+  - include: mutt.yaml muttuser=janed
   - name: Create config file
     action: template src=templates/whazzup.in dest=/tmp/whazzup
 
