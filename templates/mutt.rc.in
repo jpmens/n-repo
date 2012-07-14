@@ -1,15 +1,15 @@
+# Expects password to be in $MUTTPW before launching Mutt
+# just an example.
 
 set folder = "imaps://imap.gmail.com:993"
 set imap_user = "{{ muttuser }}"
-set imap_pass = '$MUTTPW'
+set imap_pass = $MUTTPW
 set spoolfile = "+INBOX"
 set postponed="+[Gmail]/Drafts"
 
 set smtp_url = "smtp://{{ muttuser }}@smtp.gmail.com:587/"
-set smtp_pass = "$MUTTPW"
+set smtp_pass = $MUTTPW
 set from = "$muttuser@gmail.com"
-# set realname = "Your Real Name"
-
 
 set header_cache=”~/.mutt/cache/headers”
 set message_cachedir=”~/.mutt/cache/bodies”
