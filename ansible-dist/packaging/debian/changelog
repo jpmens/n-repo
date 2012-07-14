@@ -1,0 +1,29 @@
+ansible (0.6) debian; urgency=low
+  
+  * 0.6 not released yet
+ 
+-- Michael DeHaan <michael.dehaan@gmail.com> Wed, 04 Jul 2012 13:40:01 -0400
+
+ansible (0.5) debian; urgency=low
+
+  * 0.5 update
+
+ -- Michael DeHaan <michael.dehaan@gmail.com> Wed, 04 Jul 2012 13:40:00 -0400
+
+ansible (0.4) debian; urgency=low
+  
+  * 0.4 update
+ 
+ -- Michael DeHaan <michael.dehaan@gmail.com> Wed, 23 May 2012 19:40:00 -0400
+
+ansible (0.3) debian; urgency=low
+
+  * 0.3 update
+
+ -- Michael DeHaan <michael.dehaan@gmail.com> Mon, 23 Apr 2012 11:08:00 -0400
+
+ansible (0.0.2) debian; urgency=low
+
+  * Initial Release
+
+ -- Henry Graham (hzgraham) <Henry.Graham@mail.wvu.edu>  Tue, 17 Apr 2012 17:17:01 -0400

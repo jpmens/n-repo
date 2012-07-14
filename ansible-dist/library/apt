@@ -1,0 +1,210 @@
+#!/usr/bin/python -tt
+# (c) 2012, Flowroute LLC
+# Written by Matthew Williams <matthew@flowroute.com>
+# Based on yum module written by Seth Vidal <skvidal at fedoraproject.org>
+#
+# This module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this software.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+import os
+import sys
+import shlex
+import subprocess
+import syslog
+import traceback
+
+# added to stave off future warnings about apt api
+import warnings; 
+warnings.filterwarnings('ignore', "apt API not stable yet", FutureWarning)
+
+APT_PATH = "/usr/bin/apt-get"
+APT = "DEBIAN_PRIORITY=critical %s" % APT_PATH
+
+def exit_json(rc=0, **kwargs):
+    print json.dumps(kwargs)
+    sys.exit(rc)
+
+def fail_json(**kwargs):
+    kwargs['failed'] = True
+    exit_json(rc=1, **kwargs)
+
+try:
+    import apt, apt_pkg
+except ImportError:
+    fail_json(msg="could not import apt, please install the python-apt package on this host")
+
+def run_apt(command):
+    try:
+        cmd = subprocess.Popen(command, shell=True, 
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = cmd.communicate()
+    except (OSError, IOError), e:
+        rc = 1
+        err = str(e)
+        out = ''
+    except:
+        rc = 1
+        err = traceback.format_exc()
+        out = ''
+    else:
+        rc = cmd.returncode
+        return rc, out, err
+
+def package_split(pkgspec):
+    parts = pkgspec.split('=')
+    if len(parts) > 1:
+        return parts[0], parts[1]
+    else:
+        return parts[0], None
+
+def package_status(pkgname, version, cache):
+    try:
+        pkg = cache[pkgname]
+    except KeyError:
+        fail_json(msg="No package matching '%s' is available" % pkgname)
+    if version:
+        try :
+            return pkg.is_installed and pkg.installed.version == version, False
+        except AttributeError: 
+            #assume older version of python-apt is installed
+            return pkg.isInstalled and pkg.installedVersion == version, False
+    else:
+        try :
+            return pkg.is_installed, pkg.is_upgradable
+        except AttributeError: 
+            #assume older version of python-apt is installed
+            return pkg.isInstalled, pkg.isUpgradable
+
+def install(pkgspec, cache, upgrade=False, default_release=None, install_recommends=True, force=False):
+    name, version = package_split(pkgspec)
+    installed, upgradable = package_status(name, version, cache)
+    if not installed or (upgrade and upgradable):
+        if force:
+            force_yes = '--force-yes'
+        else:
+            force_yes = ''
+
+        cmd = "%s --option Dpkg::Options::=--force-confold -q -y %s install '%s'" % (APT, force_yes, pkgspec)
+        if default_release:
+            cmd += " -t '%s'" % (default_release,)
+        if not install_recommends:
+            cmd += " --no-install-recommends"
+        rc, out, err = run_apt(cmd)
+        if rc:
+            fail_json(msg="'apt-get install %s' failed: %s" % (pkgspec, err))
+        return True
+    else:
+        return False
+
+def remove(pkgspec, cache, purge=False):
+    name, version = package_split(pkgspec)
+    installed, upgradable = package_status(name, version, cache)
+    if not installed:
+        return False
+    else:
+        purge = '--purge' if purge else ''
+        cmd = "%s -q -y %s remove '%s'" % (APT, purge, name)
+        rc, out, err = run_apt(cmd)
+        if rc:
+            fail_json(msg="'apt-get remove %s' failed: %s" % (name, err))
+        return True
+    
+
+# ===========================================
+
+if not os.path.exists(APT_PATH):
+    fail_json(msg="Cannot find apt-get")
+
+argfile = sys.argv[1]
+args    = open(argfile, 'r').read()
+items   = shlex.split(args)
+syslog.openlog('ansible-%s' % os.path.basename(__file__))
+syslog.syslog(syslog.LOG_NOTICE, 'Invoked with %s' % args)
+
+if not len(items):
+    fail_json(msg='the module requires arguments -a')
+    sys.exit(1)
+
+params = {}
+for x in items:
+    (k, v) = x.split("=", 1)
+    params[k] = v
+
+state              = params.get('state', 'installed')
+package            = params.get('pkg', params.get('package', params.get('name', None)))
+update_cache       = params.get('update-cache', 'no')
+purge              = params.get('purge', 'no')
+default_release    = params.get('default-release', None)
+install_recommends = params.get('install-recommends', 'yes')
+force              = params.get('force', 'no')
+
+if state not in ['installed', 'latest', 'removed']:
+    fail_json(msg='invalid state')
+
+if update_cache not in ['yes', 'no']:
+    fail_json(msg='invalid value for update_cache (requires yes or no -- default is no')
+
+if purge not in ['yes', 'no']:
+    fail_json(msg='invalid value for purge (requires yes or no -- default is no)')
+
+if force not in ['yes', 'no']:
+    fail_json(msg='invalid option for force (requires yes or no -- default is no)')
+
+if package is None and update_cache != 'yes':
+    fail_json(msg='pkg=name and/or update-cache=yes is required')
+
+if install_recommends not in ['yes', 'no']:
+    fail_json(msg='invalid value for install-recommends (requires yes or no -- default is yes)')
+install_recommends = (install_recommends == 'yes')
+
+cache = apt.Cache()
+if default_release:
+    apt_pkg.config['APT::Default-Release'] = default_release
+    # reopen cache w/ modified config
+    cache.open(progress=None)
+
+if update_cache == 'yes':
+    cache.update()
+    cache.open(progress=None)
+    if package == None:
+        exit_json(changed=False)
+
+if force == 'yes':
+    force_yes = True
+else:
+    force_yes = False
+
+if package.count('=') > 1:
+    fail_json(msg='invalid package spec')
+
+if state == 'latest':
+    if '=' in package:
+        fail_json(msg='version number inconsistent with state=latest') 
+    changed = install(package, cache, upgrade=True,
+                      default_release=default_release,
+                      install_recommends=install_recommends,
+                      force=force_yes)
+elif state == 'installed':
+    changed = install(package, cache, default_release=default_release,
+                      install_recommends=install_recommends,force=force_yes)
+elif state == 'removed':
+    changed = remove(package, cache, purge == 'yes')
+
+exit_json(changed=changed)
+
+

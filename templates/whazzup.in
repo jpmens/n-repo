@@ -1,0 +1,6 @@
+#(@)installed by Ansible
+#
+# configured by {{ author }}
+
+hostname: {{ ansible_fqdn }}
+IP address: {{ ansible_eth0.ipv4.address }}

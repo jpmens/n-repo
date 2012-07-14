@@ -1,0 +1,12 @@
+#(@)node-runner.cf (C)2012 by Jan-Piet Mens <jpmens () gmail.com>
+# This shell script is sourced by node-runner.sh
+
+# Default playbook name; can be overriden on a per/node basis
+
+playbook=localhost.yaml
+case `hostname -s` in
+	b1)
+		playbook=specialnode.yaml
+		;;
+esac
+

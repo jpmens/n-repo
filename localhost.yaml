@@ -1,0 +1,8 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    author: JP Mens
+  tasks:
+  - name: Create config file
+    action: template src=templates/whazzup.in dest=/tmp/whazzup
