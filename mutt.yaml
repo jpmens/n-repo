@@ -1,0 +1,9 @@
+---
+# Configure Mutt for $muttuser
+
+- name: Install Mutt
+  action: yum pkg=mutt state=installed
+- name: dot mutt
+  action: file path=~$muttuser/.mutt state=directory
+- name: Muttconfig
+  action: template src=templates/mutt.rc.in dest=~$muttuser/.muttrc

@@ -4,5 +4,7 @@
   vars:
     author: JP Mens
   tasks:
+  - include: mutt.yaml muttuser=jpmens
   - name: Create config file
     action: template src=templates/whazzup.in dest=/tmp/whazzup
+
