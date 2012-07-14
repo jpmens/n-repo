@@ -1,12 +1,12 @@
 
 set folder = "imaps://imap.gmail.com:993"
-set imap_user = ''
-set imap_pass = ''
+set imap_user = "{{ muttuser }}"
+set imap_pass = '$MUTTPW'
 set spoolfile = "+INBOX"
 set postponed="+[Gmail]/Drafts"
 
-set smtp_url = "smtp://username@smtp.gmail.com:587/"
-set smtp_pass = "password"
+set smtp_url = "smtp://{{ muttuser }}@smtp.gmail.com:587/"
+set smtp_pass = "$MUTTPW"
 set from = "$muttuser@gmail.com"
 # set realname = "Your Real Name"
 

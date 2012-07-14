@@ -6,4 +6,4 @@
 - name: dot mutt
   action: file path=/home/$muttuser/.mutt state=directory owner=$muttuser
 - name: Muttconfig
-  action: template src=templates/mutt.rc.in dest=/home/$muttuser/.muttrc owner=$muttuser
+  action: template src=templates/mutt.rc.in dest=/home/$muttuser/.muttrc owner=$muttuser mode=0600
